@@ -1020,6 +1020,8 @@ public class Camera2Engine extends CameraBaseEngine implements
         applyExposureCorrection(builder, 0F);
         applyPreviewFrameRate(builder, 0F);
 
+        configDefaultAE(builder);
+
         if (oldBuilder != null) {
             // We might be in a metering operation, or the old builder might have some special
             // metering parameters. Copy these special keys over to the new builder.
@@ -1662,5 +1664,36 @@ public class Camera2Engine extends CameraBaseEngine implements
         }
     }
 
+    private void configDefaultAE(@NonNull CaptureRequest.Builder builder) {
+        CameraCharacteristics characteristics = null;
+        try {
+            characteristics = mManager.getCameraCharacteristics(mCameraId);
+            Range<Integer> rangeISO = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
+            if(rangeISO != null) {
+                Integer max = rangeISO.getUpper();
+                builder.set(CaptureRequest.SENSOR_SENSITIVITY, max);
+            }
+
+            double compensationStep;
+            int minCompensationRange = 0;
+            int maxCompensationRange = 0;
+            Rational controlAECompensationStep = characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_STEP);
+            if (controlAECompensationStep != null) {
+                compensationStep = controlAECompensationStep.doubleValue();
+            }
+//            builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+            Range<Integer> rangeAE = characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
+            if(rangeAE != null) {
+                minCompensationRange = rangeAE.getLower();
+                maxCompensationRange = rangeAE.getUpper();
+            }
+            int brightness = (int) (minCompensationRange + (maxCompensationRange - minCompensationRange) * (75 / 100f));
+            builder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, brightness);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+//
+    }
     //endregion
 }

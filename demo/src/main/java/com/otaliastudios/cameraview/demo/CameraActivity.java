@@ -10,13 +10,16 @@ import android.graphics.ImageFormat;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.util.Range;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -66,6 +69,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         camera = findViewById(R.id.camera);
         camera.setLifecycleOwner(this);
         camera.addCameraListener(new Listener());
+
 
         if (USE_FRAME_PROCESSOR) {
             camera.addFrameProcessor(new FrameProcessor() {
@@ -201,6 +205,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     private class Listener extends CameraListener {
 
+        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onCameraOpened(@NonNull CameraOptions options) {
             ViewGroup group = (ViewGroup) controlPanel.getChildAt(0);
