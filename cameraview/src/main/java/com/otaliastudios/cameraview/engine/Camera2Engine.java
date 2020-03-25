@@ -11,7 +11,6 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -1666,7 +1665,8 @@ public class Camera2Engine extends CameraBaseEngine implements
     }
 
     private void configDefaultAE(@NonNull CaptureRequest.Builder builder) {
-        builder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_WHITEBOARD);
+//        builder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_WHITEBOARD);
+        builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
         CameraCharacteristics characteristics = null;
         try {
             characteristics = mManager.getCameraCharacteristics(mCameraId);
@@ -1676,6 +1676,21 @@ public class Camera2Engine extends CameraBaseEngine implements
                 builder.set(CaptureRequest.SENSOR_SENSITIVITY, max);
             }
 
+            long maxExposureTime = 0;
+            long minExposureTime = 0;
+            Range<Long> rangeEXTime = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
+            if(rangeEXTime != null) {
+                maxExposureTime = rangeEXTime.getUpper()/10 ;
+                minExposureTime = rangeEXTime.getLower()/200;
+            }
+            Long exposure = ((10 * (maxExposureTime - minExposureTime)) / 100 + minExposureTime);
+            builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 4900616L);
+
+            //获取帧间隔范围
+            Long maxFrameDuration = characteristics.get(CameraCharacteristics.SENSOR_INFO_MAX_FRAME_DURATION);
+//            Long frame = maxFrameDuration / 1000;
+            builder.set(CaptureRequest.SENSOR_FRAME_DURATION, maxFrameDuration);
+
             double compensationStep;
             int minCompensationRange = 0;
             int maxCompensationRange = 0;
@@ -1683,7 +1698,6 @@ public class Camera2Engine extends CameraBaseEngine implements
             if (controlAECompensationStep != null) {
                 compensationStep = controlAECompensationStep.doubleValue();
             }
-//            builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
             Range<Integer> rangeAE = characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
             if(rangeAE != null) {
                 minCompensationRange = rangeAE.getLower();
