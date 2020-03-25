@@ -11,6 +11,7 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -1665,6 +1666,7 @@ public class Camera2Engine extends CameraBaseEngine implements
     }
 
     private void configDefaultAE(@NonNull CaptureRequest.Builder builder) {
+        builder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_WHITEBOARD);
         CameraCharacteristics characteristics = null;
         try {
             characteristics = mManager.getCameraCharacteristics(mCameraId);
@@ -1687,7 +1689,7 @@ public class Camera2Engine extends CameraBaseEngine implements
                 minCompensationRange = rangeAE.getLower();
                 maxCompensationRange = rangeAE.getUpper();
             }
-            int brightness = (int) (minCompensationRange + (maxCompensationRange - minCompensationRange) * (75 / 100f));
+            int brightness = (int) (minCompensationRange + (maxCompensationRange - minCompensationRange) * (60 / 100f));
             builder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, brightness);
         } catch (CameraAccessException e) {
             e.printStackTrace();
